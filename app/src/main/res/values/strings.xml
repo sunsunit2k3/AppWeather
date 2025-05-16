@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name" translatable="false">App Weather</string>
+    <string name="title_home" translatable="false">Home</string>
+    <string name="title_map" translatable="false">Map</string>
+    <string name="title_settings" translatable="false">Settings</string>
+    <string name="next_5_days" translatable="false">Next 5 days</string>
+    <string name="today" translatable="false">Today</string>
+    <string name="search_city" translatable="false">Search City</string>
+    <string name="mostly_cloudy">Mostly Cloudy</string>
+    <string name="textDateTime">Mon June 17 | 10:00 AM</string>
+    <string name="textTemperature">25°C</string>
+    <string name="_20">20°</string>
+    <string name="_10_00">10:00</string>
+    <string name="to_day">To Day</string>
+    <string name="wed">Wed</string>
+    <string name="sunny">sunny</string>
+    <string name="temperature">%d°C</string>
+    <string name="weather_icon">Weather icon</string>
+</resources>
