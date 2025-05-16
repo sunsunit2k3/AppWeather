@@ -23,6 +23,7 @@ import com.example.appweather.R;
 import com.example.appweather.UpdateUI;
 import com.example.appweather.adapters.HourlyAdapter;
 import com.example.appweather.databinding.FragmentHomeBinding;
+import com.example.appweather.databinding.LayoutWeatherCardBinding;
 import com.example.appweather.entities.Hourly;
 import com.example.appweather.interfaces.WeatherService;
 import com.example.appweather.response.CurrentWeatherResponse;
@@ -41,8 +42,9 @@ import retrofit2.Response;
 
 public class HomeFragment extends Fragment {
     private static final String UNITS = "metric";
-    private  static  final String API_KEY="e5afb6abedc33f32a139cf17a8921af6";
+    private static final String API_KEY = "e5afb6abedc33f32a139cf17a8921af6";
     private FragmentHomeBinding binding;
+    private LayoutWeatherCardBinding layoutWeatherCardBinding;
     private ArrayList<Hourly> items;
     private HourlyAdapter hourlyAdapter;
     private RecyclerView recyclerViewHourly;
@@ -56,9 +58,8 @@ public class HomeFragment extends Fragment {
     @SuppressLint("DiscouragedApi")
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
-        View root = binding.getRoot();
-
-        // Khởi tạo các view
+        layoutWeatherCardBinding =  LayoutWeatherCardBinding.inflate(inflater, container, false);
+        // Initialize views
         textTemperature = binding.textTemperature;
         textDateTime = binding.textDateTime;
         textNext5Days = binding.textNext5Days;
@@ -69,29 +70,37 @@ public class HomeFragment extends Fragment {
         editTextSearch = binding.editTextSearch;
         recyclerViewHourly = binding.recyclerViewHourly;
 
-        // Khởi tạo ViewModel
-        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        // Assign views from layoutWeatherCardBinding
+        textPercentHumidity = layoutWeatherCardBinding.textPercentHumidity;
+        textWindSpeed = layoutWeatherCardBinding.textWindSpeed;
+        textFeelsLike = layoutWeatherCardBinding.textFeelsLike;
 
-        // Quan sát dữ liệu từ ViewModel
+
+        // Initialize ViewModel and observers
+        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         homeViewModel.getTextTemperature().observe(getViewLifecycleOwner(), textTemperature::setText);
         homeViewModel.getTextDateTime().observe(getViewLifecycleOwner(), textDateTime::setText);
         homeViewModel.getTextState().observe(getViewLifecycleOwner(), textState::setText);
         homeViewModel.getTextNext5Days().observe(getViewLifecycleOwner(), textNext5Days::setText);
         homeViewModel.getTextNameCity().observe(getViewLifecycleOwner(), textNameCity::setText);
+        if (layoutWeatherCardBinding != null) {
+            homeViewModel.getTextFeelsLike().observe(getViewLifecycleOwner(), textFeelsLike::setText);
+            homeViewModel.getTextWindSpeed().observe(getViewLifecycleOwner(), textWindSpeed::setText);
+            homeViewModel.getTextHumidity().observe(getViewLifecycleOwner(), textPercentHumidity::setText);
+        }
 
-        // Khởi tạo WeatherService
         weatherService = RetrofitClient.getInstance().create(WeatherService.class);
 
-        // Khởi tạo RecyclerView
+        // Initialize RecyclerView
         items = new ArrayList<>();
         hourlyAdapter = new HourlyAdapter(items);
         recyclerViewHourly.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         recyclerViewHourly.setAdapter(hourlyAdapter);
 
-        // Gọi API dự báo để điền RecyclerView
+        // Fetch weather data
         fetchForecastData("Hanoi");
 
-        // Xử lý tìm kiếm
+        // Handle search action
         imgSearch.setOnClickListener(v -> {
             String city = editTextSearch.getText().toString().trim();
             if (!city.isEmpty()) {
@@ -102,11 +111,11 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // Xử lý nhấn vào "Next 5 days"
+        // Handle "Next 5 Days" action (future navigation logic)
         textNext5Days.setOnClickListener(v -> {
             try {
                 Bundle bundle = new Bundle();
-                String city = textNameCity != null && textNameCity.getText() != null ? textNameCity.getText().toString() : "Hanoi";
+                String city = textNameCity.getText() != null ? textNameCity.getText().toString() : "Hanoi";
                 bundle.putString("city", city);
                 NavController navController = Navigation.findNavController(requireView());
                 navController.navigate(R.id.action_navigation_home_to_futureFragment, bundle);
@@ -116,7 +125,7 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // Cập nhật icon thời tiết
+        // Update weather icon
         weatherService.getCurrentWeather("Hanoi", API_KEY, UNITS).enqueue(new Callback<CurrentWeatherResponse>() {
             @Override
             public void onResponse(Call<CurrentWeatherResponse> call, Response<CurrentWeatherResponse> response) {
@@ -124,12 +133,15 @@ public class HomeFragment extends Fragment {
                     String icon = response.body().getWeather()[0].getIcon();
                     int iconResId = UpdateUI.getIconID(icon);
                     imgIconWeather.setImageResource(iconResId);
+                } else {
+                    Log.e("HomeFragment", "Failed to fetch current weather");
                 }
             }
 
             @Override
             public void onFailure(Call<CurrentWeatherResponse> call, Throwable t) {
-                imgIconWeather.setImageResource(R.drawable.clear_night); // Icon mặc định
+                imgIconWeather.setImageResource(R.drawable.clear_night); // Default icon on failure
+                Log.e("HomeFragment", "Weather API call failed: " + t.getMessage());
             }
         });
 
@@ -151,12 +163,16 @@ public class HomeFragment extends Fragment {
                         items.add(new Hourly(hour, temp, icon));
                     }
                     hourlyAdapter.notifyDataSetChanged();
+                } else {
+                    Log.e("HomeFragment", "Failed to fetch forecast data");
+                    Toast.makeText(getContext(), "Failed to load forecast", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<ForecastResponse> call, Throwable t) {
                 Toast.makeText(getContext(), "Failed to load forecast", Toast.LENGTH_SHORT).show();
+                Log.e("HomeFragment", "Forecast API call failed: " + t.getMessage());
             }
         });
     }
@@ -165,5 +181,6 @@ public class HomeFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         binding = null;
+        layoutWeatherCardBinding = null;
     }
 }

@@ -28,6 +28,7 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<String> textWindSpeed;
     private final MutableLiveData<String> textFeelsLike;
 
+
     private final WeatherService weatherService;
 
     public HomeViewModel() {
@@ -60,17 +61,24 @@ public class HomeViewModel extends ViewModel {
                     textHumidity.setValue(String.format(Locale.getDefault(), "%d%%", data.getMain().getHumidity()));
                     textWindSpeed.setValue(String.format(Locale.getDefault(), "%.1f m/s", data.getWind().getSpeed()));
                     textFeelsLike.setValue(String.format(Locale.getDefault(), "%.0f°C", data.getMain().getFeelsLike()));
-                    // Format ngày giờ
                     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
                     textDateTime.setValue(sdf.format(new Date((long) (data.getDateTime() * 1000))));
+                }else {
+                    textTemperature.setValue("Error");
+                    textNameCity.setValue("Error");
+                    textHumidity.setValue("Error");
+                    textWindSpeed.setValue("Error");
+                    textFeelsLike.setValue("Error");
                 }
             }
 
             @Override
             public void onFailure(Call<CurrentWeatherResponse> call, Throwable t) {
-                // Xử lý lỗi
                 textTemperature.setValue("Error");
                 textNameCity.setValue("Error");
+                textHumidity.setValue("Error");
+                textWindSpeed.setValue("Error");
+                textFeelsLike.setValue("Error");
             }
         });
     }

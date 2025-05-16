@@ -64,18 +64,6 @@ public class FutureFragment extends Fragment {
 
         return root;
     }
-    private void setIntentExtras() {
-        String city = editTextSearch.getText().toString();
-        Intent intent = new Intent(HomeFragment.this, FutureFragment.class);
-        intent.putExtra("name", city);
-        intent.putExtra("state", textState.getText().toString());
-        intent.putExtra("temperature", textTemperature.getText().toString());
-        intent.putExtra("feelsLike", textFeelsLike.getText().toString());
-        intent.putExtra("windSpeed", textWindSpeed.getText().toString());
-        intent.putExtra("humidity", textPercentHumidity.getText().toString());
-        intent.putExtra("imgIconWeather", icon);
-        startActivity(intent);
-    }
     private void fetchForecastData(String city) {
         weatherService.getForecast(city, "e5afb6abedc33f32a139cf17a8921af6", "metric").enqueue(new Callback<ForecastResponse>() {
             @Override
